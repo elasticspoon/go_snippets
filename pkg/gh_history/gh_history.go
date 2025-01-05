@@ -1,13 +1,14 @@
 package gh_history
 
 import (
+	"crypto/rand"
 	"fmt"
+	"math/big"
 	"os"
 	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"golang.org/x/exp/rand"
 )
 
 func Run() {
@@ -18,18 +19,27 @@ func Run() {
 	startDate := time.Date(2024, time.July, 20, 1, 1, 1, 1, time.Local)
 	endDate := time.Now()
 
-	fmt.Println()
-
 	for d := startDate; d.Before(endDate); d = d.AddDate(0, 0, 1) {
 		switch d.Weekday() {
 		case time.Saturday, time.Sunday:
-			buildFakeCommit(w, d, rand.Intn(10)+2)
+			buildFakeCommit(w, d, randInt(10)+2)
+		case time.Tuesday:
+			buildFakeCommit(w, d, randInt(12)+1)
 		default:
-			if rand.Intn(100) < 30 {
-				buildFakeCommit(w, d, rand.Intn(20))
+			if randInt(100) < 20 {
+				buildFakeCommit(w, d, randInt(20))
 			}
 		}
 	}
+}
+
+func randInt(max int) int {
+	randomNumber, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		fmt.Println("Error generating random number:", err)
+		return 0
+	}
+	return int(randomNumber.Int64())
 }
 
 func buildFakeCommit(w *git.Worktree, d time.Time, count int) {
